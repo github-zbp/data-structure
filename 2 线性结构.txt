@@ -1,0 +1,1097 @@
+线性结构是一种有序的数据集合，每个数据项都有唯一的前驱和后继（除了第一个和最后一个数据）。
+
+不同线性结构的关键区分在于数据项增减方式。
+
+最基本的4种线性结构为：
+栈         stack
+队列       Queue
+双向队列    Dequeue
+列表       List
+
+这4种线性结构的区别就是数据增减的方式。
+
+===========================================
+
+栈 stack
+
+栈是一种先进后出的线性结构。在栈中，数据项的添加和移除都发生在同一端，这一端叫做栈顶(top)，另一端叫做栈底
+
+距离栈底越近的数据留在栈中的时间越长，而最新加入栈的数据会被最先移除
+
+这种次序叫做“后进先出LIFO” Last in First out
+
+所以，需要在栈内保存时间长的就离栈底越近。
+
+例如浏览器的后退功能，还有ctrl+z 撤销操作都是使用了栈的特性。
+
+下面我们用 python 实现一个栈
+
+# coding=utf-8
+
+class Stack:
+    def __init__(self):
+        self.items=[]
+
+    def pop(self):
+        return self.items.pop()
+
+    def push(self,item):
+        self.items.append(item)
+
+    # 查看栈顶的元素
+    def peak(self):
+        return self.items[-1]
+
+    def size(self):
+        return len(self.items)
+
+    def isEmpty(self):
+        return self.items==[]
+
+if __name__=="__main__":
+    s=Stack()
+    print(s.isEmpty())
+    s.push(4)
+    s.push("dog")
+    print(s.peak())
+    print(s.size())
+    print(s.pop())
+    print(s.pop())
+    print(s.size())
+    print(s.isEmpty())
+    
+上面将列表的尾部作为栈顶，首部作为栈底 pop和push 的复杂度都是O(1)
+
+PS 假如你将列表的首部作为栈顶，尾部作为栈底 
+此时 push和pop 的实现变成如下所示
+def pop(self):
+        return self.items.pop(0)
+
+def push(self,item):
+    self.items.insert(0,item)
+    
+此时pop和push 的复杂度都是O(n)
+    
+栈的应用：
+
+1. 简单括号匹配，判断一堆括号是否合法：
+([(){}])，([]){},[{[()]}] 这些是合法的
+({)[}],{(),([[){[]} 这是不合法的。
+
+思路如下：遇到一个左括号就就将左括号入栈，遇到右括号就将一个左括号出栈，判断这个左括号是否和右括号匹配。如果不匹配则这堆括号不合法。
+
+# coding=utf-8
+
+class Stack:
+    def __init__(self):
+        self.items=[]
+
+    def pop(self):
+        return self.items.pop()
+
+    def push(self,item):
+        self.items.append(item)
+
+    # 查看栈顶的元素
+    def peak(self):
+        return self.items[-1]
+
+    def size(self):
+        return len(self.items)
+
+    def isEmpty(self):
+        return self.items==[]
+
+def isValidBrackets(brackets):
+    if len(brackets) % 2:
+        return False
+
+    left = ["[","(","{"]
+    right = ["]",")","}"]
+    stack = Stack()
+
+    for bracket in brackets:
+        # print(bracket)
+        if bracket in left:
+            stack.push(bracket)
+        elif stack.size():        # 如果此时遍历到右括号，而且栈中还有左括号
+            item = stack.pop()
+            index = left.index(item)
+            if right[index] != bracket:
+                return False
+        else:   # 如果此时遍历到右括号，而且栈中没有左括号，说明左右括号的数量不相等
+            return False
+
+    return True
+
+
+
+
+
+if __name__=="__main__":
+    print(isValidBrackets("([(){}])"))
+    print(isValidBrackets("([]){}"))
+    print(isValidBrackets("[{[()]}]"))
+    print(isValidBrackets("({)[}]"))
+    print(isValidBrackets("({[)}]"))
+    print(isValidBrackets("({))}]"))
+    print(isValidBrackets("({)(}]"))
+
+    
+除了括号之外，还有html标签的匹配也可以这样判断
+
+2. 十进制转为二进制
+十进制转二进制的方法是不断除2取余数。
+例如 35 求 2进制
+35/2 = 17 ... 1 
+17/2 = 8 ... 1 
+8/2 = 4 ... 0
+4/2 = 2 ... 0
+2/2 = 1 ... 0
+1/2 = 0 ... 1 
+
+将其翻转过来得到
+二进制是 100011
+
+def baseConverter(decNumber):
+    stack = Stack()
+
+    while decNumber:
+        stack.push(decNumber%2)
+        decNumber = math.floor(decNumber/2)
+
+    newString = ""
+
+    while not stack.isEmpty():
+        newString= newString + str(stack.pop())
+
+    return newString
+
+
+
+if __name__=="__main__":
+    print(baseConverter(35))
+    
+
+下面将这个函数扩展为 十进制转2,8,16进制皆可的函数
+
+def baseConverter(decNumber,base=2):
+    stack = Stack()
+    digits = "0123456789ABCDEF"
+
+    while decNumber:
+        stack.push(decNumber%base)
+        decNumber = math.floor(decNumber/base)
+
+    newString = ""
+
+    while not stack.isEmpty():
+        newString= newString + digits[stack.pop()]
+
+    return newString
+
+
+
+if __name__=="__main__":
+    print(baseConverter(35,2))
+    print(baseConverter(35,8))
+    print(baseConverter(35,16))
+
+    
+3.表达式转换
+中缀表达式 例如 A+B +在AB之间，所以+号是中缀表达式
+
+由于 +-和*/ 的优先级不同，所以对于计算机而言，会对表达式加上括号从而知道其计算的优先级
+A+B*C+D 就变成了 ((A+(B*C))+D)
+这个叫做全括号表达式
+
+内层括号优先级大于外层括号，所以计算机就知道先计算 B*C 然后是 A+xxx 最后才是 xxxx+D
+
+但是对于计算机而言，这样还是优点复杂，于是计算机将中缀表达式变成后缀表达式：
+
+A+B 这个中缀表达式变为后缀表达式是 AB+
+A+B*C+D 是 ABC*+D+
+
+怎么将一个复杂的中缀表达式变为后缀表达式，例如
+(A+B)*C-(D-E)*(F+G)
+ABC*+D+
+其实只需要现将 中缀表达式 变为 全括号表达式，再将全括号表达式变为后缀表达式就会简单很多
+(A+B)*C-(D-E)*(F+G) -> (((A+B)*C)-((D-E)*(F+G))) -> (((AB+)C*)((DE-)(FG+)*)-) ->AB+C*DE-FG+*-
+
+后缀表达式的好处是：即使计算机不知道+和*的优先级，也可以按照从左到右的方式按顺序进行计算。
+
+接下来，使用栈实现将中缀转为后缀
+
+思路如下：
+需要一个栈用来存放 左右括号和*/+-
+需要一个列表用来存放操作数 ABCD等
+
+将一个表达式从左到右逐个字符遍历，如果遍历到操作数则添加到列表
+如果遍历到( 则压入栈
+如果遍历到) 则反复弹出栈，并将栈内所有的+-*/逐一弹出栈并压入到列表中直到将对应的(给弹出来。左右括号不压入列表中
+如果遍历到 +-*/ 则压入栈，但是压入之前先比较要压入的操作符与栈顶的操作符的优先级。
+如果栈顶的高于或者等于它，则这个操作符不压入栈而是压入列表，并且反复弹出栈顶的操作符压入列表直到栈顶的操作符优先级低于它。
+为什么栈顶的操作符的优先级等于遍历到的操作符也要弹出呢，因为虽然二者优先级相同但前者比后者的顺序在前，所以前者先执行。
+当栈中的操作符弹出到优先级比遍历到的操作符时，栈不再弹出，此时遍历到的操作符要压入栈中，不能直接进入列表。因为后面的操作数要先于操作符进入列表。
+
+代码如下：
+def inFixToPostfix(expr):
+    # 使用字典将操作符的优先级保存
+    priority = {
+        "+":2,
+        "-":2,
+        "*":3,
+        "/":3,
+        "(":1,
+        ")":1
+    }
+    alpha = "QWERTYUIOPASDFGHJKLZXCVBNM"
+    brackets = ["(",")"]
+
+    stack = Stack()
+    postfix_list = []
+
+    for char in expr:
+        print(char)
+        if char in alpha:
+            postfix_list.append(char)
+        elif char == "(":
+            stack.push(char)
+        elif char == ")":
+            sign = stack.pop()
+            while sign!="(":
+                postfix_list.append(sign)
+                sign = stack.pop()
+        else:
+            while (not stack.isEmpty()) and priority[stack.peak()] > priority[char]:
+                sign = stack.pop()
+                postfix_list.append(sign)
+            stack.push(char)
+
+    # 遍历完之后，如果栈里面还有操作符则要一一弹出并放到列表中
+    while not stack.isEmpty():
+        postfix_list.append(stack.pop())
+
+    newString=""
+    for char in postfix_list:
+        newString+=char
+
+    return newString
+
+
+下面我们要将后缀表达式进行求值
+
+(A+B)*C-(D-E)*(F+G) -> AB+C*DE-FG+*-
+
+
+以这个为例，发现一个这样的规律：操作符只作用于离她最近的两个操作数。
+可以使用栈求解，逻辑如下：
+将操作数暂存到一个栈中，当遇到操作符时，将栈中离栈顶最近的两个操作数取出来进行运算，并将计算得到的值压入回栈中作为下一次运算的操作数。
+
+直到最后遍历完所有的操作数和字符之后，栈中只剩下一个操作数，也就是最终的值。
+
+此时，这里的栈只保存操作数，不保存操作符
+
+假设 A~G 分别是 1~7 可以得到结果为 22
+
+代码如下：
+def calcul(op,left,right):
+    if op=="+":
+        res = left+right
+    elif op=="-":
+        res = left-right
+    elif op=="*":
+        res = left*right
+    elif op=="/":
+        res = left/right
+    else:
+        res = False
+
+    return res
+
+def calculPostfix(postfix,numDict):
+    sign = ["+","-","*","/"]
+    stack = Stack()
+
+    for char in postfix:
+        if char not in sign:
+            stack.push(numDict[char])
+        else:
+            right = stack.pop()
+            left = stack.pop()
+            stack.push(calcul(char,left,right))
+
+
+    return stack.pop()
+
+
+if __name__=="__main__":
+    numDict = {
+        "A":1,
+        "B":2,
+        "C":3,
+        "D":4,
+        "E":5,
+        "F":6,
+        "G":7
+    }
+    print(calculPostfix("AB+C*DE-FG+*-",numDict))
+    
+上面为了方便，并没有验证后缀表达式是否合法，如果后缀表达式不合法是会报错的。
+
+总结：如果使用到了反转的特性，就可以使用栈
+
+======================================
+
+队列  Queue 
+
+队列是一种线性结构，其特点是：数据的添加在一端（通常叫做尾端 rear），数据的移除在另一端(通常叫做首端 front)
+
+            --------------------------
+添加数据->  尾       Queue          首 ->移除数据
+            --------------------------
+            
+它的次序是先进先出(FIFO) first in first out
+或者说先进先服务
+
+队列只有一个入口和一个出口，不允许数据从队列中间加入或移除数据。
+
+由于队列的先到先服务特性，所以队列适用于排队的场景
+
+具体的应用场景例如
+CPU调度进程
+由于 CPU核数远少于进程数，有些进程还要等待不同类型的IO时间，所以将进程放到队列中排队循环运行。
+
+
+下面我们实现一个队列：
+功能如下：
+enqueue(item)   加入队列
+dequeue()       弹出队列
+isEmpty()       是否为空
+size()          数据个数
+
+
+# coding=utf8
+
+class Queue:
+    def __init__(self):
+        self.items = []
+
+    def enqueue(self,item):
+        self.items.insert(0,item)
+
+    def dequeue(self):
+        return item.pop()
+
+    def size(self):
+        return len(self.items)
+
+    def isEmpty(self):
+        return self.items==[]
+
+        
+# 应用1：热土豆问题（约瑟夫问题）
+热土豆问题就是有n个人围成一圈，土豆在这n个人中按顺时针传递，当传过k个人时，拿着土豆的人就要表演节目。表演过节目的人不能再参与热土豆游戏。
+
+这样到最后，只剩下一个人，这个人是不用表演节目的。
+
+我们希望找到最后这个人是谁。
+
+这个问题可以用Queue解决
+
+def hotPotato(players,k):
+    queue = Queue(players)
+    i = 1
+
+    while queue.size()>1:
+        if i==k:
+            queue.dequeue()
+            i=1
+        else:
+            queue.enqueue(queue.dequeue())
+            i+=1
+
+    return queue.dequeue()
+
+# 或者也可以这样写
+def hotPotato2(players,k):
+    queue = Queue(players)
+
+    while queue.size() > 1:
+        for i in range(k-1):
+            queue.enqueue(queue.dequeue())
+        queue.dequeue()
+
+    return queue.dequeue()
+print(hotPotato2(list("ABCDEF"),7))
+
+
+
+# 打印机问题
+情景如下：
+1小时内，有10个学生，每个学生要打印2次，每次打印1~20页
+
+打印机有两种模式：
+草稿模式 1分钟10页
+正常模式 1分钟5页
+
+请计算两种模式下，一个小时内每个同学的平均等待时间（不含打印时间）
+
+思路如下：
+将时间以秒的形式流逝，1小时就是3600秒。通过循环模拟时间的流逝，所以循环3600次
+
+1h内打印20次，即3分钟打印1次，180s打印1次，所以3600s中，每一秒打印的几率是1/180
+
+在3600s的每一秒中：
+可能没有人用打印机，此时队列为空，打印机处于空闲状态。
+可能有n个人要用计算机，此时队列有n-1个元素，打印机处于忙碌状态。
+可能只有一个人在用，此时队列为空，打印机处于忙碌状态
+
+每次打印页数通过随机数生成一个1~20的整数
+
+需要实例化3个对象：队列，打印机和任务
+
+
+# 应用2：打印任务
+class Printer:
+    def __init__(self,speed=5):   # speed速度，整数 5 or 10 （每分钟打印5 or 10页）
+        self.speed = speed
+        self.currentTask = None     # 保存任务对象，当任务对象不为空
+        self.spending = 0   # 记录本次打印需要花多少时间
+
+    def busy(self):
+        if self.currentTask:
+            return True
+        else:
+            return False
+
+    def tick(self):     # 打印1秒钟
+        # 每打印1秒钟，本次打印需要花的时间就-1
+        if self.currentTask :
+            if self.spending>0:
+                self.spending-=1
+            else:
+                # 如果所需打印时间为0说明本次打印完成
+                self.currentTask = None
+
+    def recTask(self,task):      # 接任务
+        self.currentTask = task
+        self._calculSpending()
+
+    def _calculSpending(self):   # 计算本次打印所需时间
+        # 60/self.speed是每页需要打印的时间
+        self.spending = self.currentTask.pages * 60/self.speed
+
+class Task:
+    def __init__(self,time):
+        self.pages = random.randint(1,20)
+
+        # 该时间用于计算任务等待的总时间（入队列的时间到出队列的时间）
+        self.st = time      # 任务开始的时间，其实是放入队列的时间而不是计算机开始打印本次任务的时间
+
+    def calculWaitTime(self,time):
+        return time - self.st
+
+    @classmethod
+    def createTask(cls):
+        randNum = random.randint(1,180)
+        if randNum == 180:
+            return True
+        else:
+            return False
+
+
+# 模拟打印
+def simulate(totalTimes,speed):
+    printer = Printer(speed)    # 打印机
+    queue = Queue()             # 任务队列
+    wait_times = []             # 存储每次打印任务的等待时间，即入队列到出队列的时长，不含打印时间（因为每人打印的页数不同，如果加入了打印时间就会不公平）
+
+    for currentSec in range(totalTimes):
+        # 每秒都有1/180的几率生成1个任务，如果生成了任务就往队列里面添加
+        if Task.createTask():
+            task = Task(currentSec)
+            queue.enqueue(task)
+
+        # 如果打印机不忙碌，每秒打印机都会尝试从队列取任务
+        if not printer.busy() and not queue.isEmpty():
+            ready_task = queue.dequeue()
+            # print(ready_task.st,i)
+            wait_times.append(ready_task.calculWaitTime(currentSec))
+            printer.recTask(ready_task)   # 打印机接收从队列弹出的任务
+
+        printer.tick()  # 执行打印，每秒执行一次tick()
+
+    # 执行到这里，3600s已经过去了，计算平均等待的时间
+    avg_time = sum(wait_times)/len(wait_times)
+
+    # 可能3600s完了之后，还有些任务没开始打印，原因是它们在3600s末期才开始入列
+    remain_task_num = queue.size()
+
+
+    return avg_time,remain_task_num
+
+
+for x in range(20):     # 进行10次试验
+    print(simulate(3600,5))
+    
+    
+================================================
+
+双向队列  Dequeue
+
+双向队列由于有两端所以栈和队列能做到的双向队列都可以做到。它可以不具有内在的FIFO和LIFO的特性
+
+下面使用python实现。将list列表的下标0作为deque的尾端，下标-1作为首端
+主要的两个操作 addRear() 和 addFront() 从尾部添加和从首部添加
+
+class Deque:
+    def __init__(self):
+        self.items=[]
+
+    def size(self):
+        return len(self.items)
+
+    def isEmpty(self):
+        return self.items == []
+
+    def addRear(self,item):
+        self.items.insert(0,item)
+
+    def addFront(self,item):
+        self.items.append(item)
+
+    def removeRear(self):
+        return self.items.pop(0)
+
+    def removeFront(self):
+        return self.items.pop()
+        
+上面这种实现的方式使用了 pop(0) 和 insert() 方法，这两种方法的复杂度是O(n)的，所以，推荐使用下面这种使用字典实现的方法
+思路很简单，使用一个first下标和last下标保存队列的头部和尾部的下标，形式如下：
+{"first":0,"last":3,"0":"A","1":"B","2":"C","3":"D"}
+下标为0~3的元素才是队列中的元素，而first和last标记的是头部和尾部的元素的下标
+
+# 改良的双端列表
+class DequeImproved:
+    def __init__(self):
+        self.items = {"first":0,"last":0}
+        self.size = 0
+
+    def getSize(self):
+        return self.size
+
+    def isEmpty(self):
+        return self.size == 0
+
+    def addFront(self,item):
+        if self.size != 0:
+            self.items['first'] -= 1
+        self.items[self.items['first']] = item
+        self.size += 1
+
+    def addRear(self,item):
+        if self.size != 0:
+            self.items['last'] += 1
+
+        self.item[self.items['last']] = item
+        self.size += 1
+
+    def removeRear(self):   # 就是pop
+        if self.size == 0:
+            return None
+
+        item = self.items[self.items['last']]
+        del self.items[self.items['last']]
+        self.items['last'] -= 1
+        self.size -= 1
+        return item
+
+    def removeFront(self):  # 就是shift
+        if self.size == 0:
+            return None
+
+        item = self.items[self.items['first']]
+        del self.items[self.items['first']]
+        self.items['first'] += 1
+        self.size -= 1
+        return item
+
+    def __str__(self):
+        return str(self.items)
+
+它的好处是，无论是添加元素还是移除元素，无论是从头部添加还是尾部添加，它的复杂度都是O(1)
+		
+
+下面我们用双端队列完成以下应用
+回文词判定：
+回文词就是例如 toot radar madam 这样的词
+或者中文 “上海自来水来自海上”
+
+用双向队列可以非常容易完成这个任务：
+只需将单词或者句子从Dequeue的一端压入，再从另一端弹出得到一个新词或者新句子，判断是否和原句相同即可
+
+def isSymmetry(words):
+    deque = Deque()
+
+    new_words = ""
+
+    for word in words:
+        deque.addFront(word)
+
+    for word in words:
+        new_words += deque.removeFront()
+
+    if new_words == words:
+        return True
+    else:
+        return False
+
+if __name__ == "__main__":
+    words = "abcde"
+    words2 = "madam"
+    print(isSymmetry(words))
+    print(isSymmetry(words2))
+    
+
+但是这种方法使用栈也可以实现。
+
+
+下面还有一种思路
+将单词的字符一个个的从头部放入双相队列，放完之后，同时从两端取出一个字符，每次取出的两个字符进行判断是否相同，如果不同那就返回false
+
+def isSymmetry2(words):
+    deque = Deque()
+
+    for word in words:
+        deque.addFront(word)
+
+    while deque.size()>1:
+        front = deque.removeFront()
+        rear = deque.removeRear()
+
+        if front != rear:
+            return False
+
+    return True
+    
+这里由于words可能是单数如madam，也可能是双数toot
+所以 while 中判断是 size()>1 而不是 size()>0
+
+=================================================
+
+之前我们实现 栈（stack） 队列(Queue) 双端队列（Deque） 都是基于python的list结构实现的。
+
+现在我们希望不用list结构实现，而是另一种结构： 链表
+
+链表包含这么几样东西：节点，指针（包含在节点内），首节点标记
+
+其中指针其实是节点的一部分
+
+链表的特点：
+1. 链表的每一个元素（即节点）都会（通过指针）指向下一个元素，使得链表中的每一个元素单向的连接了起来，所以通过一个元素找到下一个元素。
+
+2. 如果想查找链表中某一个节点的值，只能从第一个节点开始（通过指针）往下找。
+
+3. 链表的首部标记指向一个节点。首部标记的节点就是链表的第一个节点。 查找链表中任何一个节点的值都是从首部节点开始往下找
+
+4. 链表本身不包含任何数据和节点（只包含一个head首部标记记录着首部节点的引用），节点是分散的保存在不同的变量中的。
+也就是说，链表对象中并不会创建一个容器来保存节点
+
+5. 链表最后一个节点的指向为None
+
+节点的特点：节点要包含两部分内容，节点的值和指针。指针保存的是另一个节点的引用
+
+
+实现如下：
+
+class Node
+
+链表要实现的方法如下：
+size 获取链表中节点长度  O(n) 
+add  往链表首部添加节点  O(1)
+search 判断链表中是否有某一个值     O(n)
+remove 删除特定值的节点     O(n)
+isEmpty 判断链表是否为空    O(1)
+
+上面的方法中，凡是需要遍历链表才能实现的方法都是复杂度为 O(n)
+
+# coding=utf8
+
+class Node:
+    def __init__(self,value):
+        self.value = value      # 节点值
+        self.next = None        # 节点向后指针
+
+    def getData(self):
+        return self.value
+
+    def setData(self,value):
+        self.value = value
+
+    def getNext(self):
+        return self.next
+
+    def setNext(self,next):
+        self.next = next
+
+class LinkedList:
+    def __init__(self):
+        self.head = None    # 首部标记
+
+    def size(self):
+        # 需要遍历这个链表
+        current = self.head
+        size = 0
+        while current:
+            current = current.next
+            size += 1
+
+        return size
+
+    def add(self,item):      # 往首部加入
+        node = Node(item)
+
+        if self.head:
+            node.setNext(self.head)
+
+        self.head = node
+
+    def pop(self):
+        previous = None
+        current = self.head
+
+        while True:
+            if current.getNext() is None:
+                if current == self.head:
+                    self.head = None
+                else:
+                    previous.setNext(None)
+                return current.getData()
+            else:
+                previous = current
+                current = current.getNext()
+
+    def search(self,item):
+        current = self.head
+
+        while current:
+            if current.getData() == item:
+                return True
+            else:
+                current = current.getNext()
+
+        return False
+
+    def remove(self,item,n=1):      # n表示可以删除n个值为item的节点
+        current = self.head
+        previous = None
+        num = 0
+
+        while current and num<n:
+            if current.getData() == item:
+                if current == self.head:
+                    self.head = current.getNext()
+                else:
+                    previous.setNext(current.getNext())
+                num += 1
+
+            previous = current
+            current = current.getNext()
+
+    def isEmpty(self):
+        return self.head is None    # 判断是否有首部节点即可
+
+    def __str__(self):
+        current = self.head
+        cont = ""
+
+        while current:
+            cont += str(current.getData()) + "->"
+            current = current.getNext()
+
+        return cont.strip("->")
+
+if __name__ == "__main__":
+    linkedList = LinkedList()
+    linkedList.add(1)
+    linkedList.add("hello")
+    linkedList.add("hi")
+    linkedList.add(555)
+    linkedList.add("hi")
+    linkedList.add(["A","b"])
+    print(linkedList)
+
+    linkedList.remove(1)
+    linkedList.remove("hi",5)
+    linkedList.remove(["A","b"])
+    print(linkedList)
+
+    print(linkedList.size())
+
+    print(linkedList.pop())
+    print(linkedList.size())
+
+    print(linkedList.pop())
+    print(linkedList.size())
+
+    print(linkedList.pop())
+    print(linkedList.size())
+上面的链表实现 pop 这样弹出尾部的方法，因为单向队列如果要弹出尾部的元素必须要遍历链表到尾端，复杂度肯定是 O(n)
+所以对于单向链表而言，pop这样的方法性能还是挺低的
+
+
+接下来我们基于上面的单向链表创建一个 有序表
+这个有序表的多出来的功能是，链表中是有顺序的，而且节点的顺序是按照数值的大小排序的。
+
+例如 
+10 22 34 56 77 这就是一个有序表
+22 10 56 77 34 就是一个无序表
+
+有序表添加数据，例如添加 55 ，结果为
+10 22 34 55 56 77
+他会根据所添加的数据值为这个数据插入到合适的位置
+
+无序表添加数据 55 结果为
+55 22 10 56 77 34 
+他是直接往头部插入
+
+有序表的接口还是 add remove size isEmpty pop search 这几个
+我们需要重写 add search 这两个方法
+
+class OrderList(LinkedList):
+    def add(self,item):
+        current = self.head
+        previous = None
+
+        while current:
+            if current.getData() > item:    # 如果遍历到数据项大于item的位置就可以停下来执行插入了
+                break
+
+            previous = current
+            current = current.getNext()
+
+        node = Node(item)
+        if previous is None:    # 说明要插入的节点的值是比链表中的值都小，要插入链表的头部
+            node.setNext(self.head)
+            self.head = node
+        else:
+            previous.setNext(node)
+            node.setNext(current)
+
+    def search(self,item):
+        current = self.head
+
+        while current:
+            if current.getData() == item:
+                return True
+            elif current.getData() > item:
+                break
+
+            current = current.getNext()
+
+        return False
+
+if __name__ == "__main__":
+    orderlist = OrderList()
+    orderlist.add(10)
+    orderlist.add(5)
+    orderlist.add(100)
+    orderlist.add(55)
+    orderlist.add(22)
+
+    print(orderlist.search(10))
+    print(orderlist.search(56))
+    print(orderlist)
+
+    print(orderlist.pop())
+    print(orderlist.remove(11))
+    print(orderlist.remove(10))
+    print(orderlist)
+    
+注意，由于插入的时候要保证节点数据大小的顺序，所以add方法的复杂度变成 O(n)
+===================================================
+
+除了单向链表之外，还有一种双向链表
+
+双向链表在单向链表的基础上添加了一个尾部标记或者说尾部指针
+而且双向链表中的节点也和单向链表的节点不同，双向链表的节点除了有一个向后指针 self.next 还有一个向前指针 self.previous 
+
+这样的话，单向链表是一个这样的结构
+
+    head
+     |
+     v
+|---------| 指针 |---------| 指针  |---------| 指针         
+|key-value|----->|key-value|------>|key-value|------->Null
+|---------|      |---------|       |---------|                   
+
+而双向链表是一个这样的结构
+
+          head                             tail
+           |                                |
+           V                                V
+Null<---|-----|<---|-----|<---|-----|<---|-----|
+        | k-v |    | k-v |    | k-v |    | k-v |
+        |-----|--->|-----|--->|-----|--->|-----|--->Null
+        
+        
+        
+单向链表和双向链表对比：
+单向链表只能从头部添加数据（或者说如果要写一个从尾部添加数据的方法，就要遍历整个链表所有节点，复杂度为O(n)），双向链表还可以从尾部添加数据(复杂度为O(1))
+单向链表删除一个node复杂度为O(n),而双向链表是 O(1)
+单向链表从尾部弹出一个节点复杂度为O(n),双向链表为O(1)
+双向链表虽然很多方法的性能得到提升，但是是以消耗更多存储空间为代价实现的（体现在双向链表的节点比单向链表的节点多存储了一个向前指针）
+        
+双向链表的实现如下：
+# coding=utf-8
+
+# 节点类
+class Node:
+    def __init__(self,key,value):
+        self.key = str(key)
+        self.value=str(value)
+        self.prev=None      # 节点的向前指针，默认指向空
+        self.next=None      # 节点的向后指针，默认指向空
+
+    def __str__(self):
+        return "{%s,%s}" % (self.key,self.value)
+
+    def __repr__(self):
+        return "{%s,%s}" % (self.key,self.value)
+
+
+# 双向链表类
+class DoubleLinkedList:
+    def __init__(self,capacity=0xffff):
+        self.capacity = capacity    # 定义链表的容量，默认为2^16-1=65535个节点
+        self.head=None      # 链表的头部指针，一开始链表中没有节点，所以为空
+        self.tail=None      # 链表的尾部指针，一开始链表中没有节点，所以为空
+        self.size=0         # 节点个数
+
+    # 往头部添加节点
+    def unshift(self,node):
+        if not self.head:   # 如果头部指针为空，说明链表没有节点，此时头部指针和尾部指针都指向新加的节点
+            self.head=node
+            self.tail=node
+            node.prev=None
+            node.next=None
+        else:   # 如果链表已有节点，则把头部指针指向新添节点node，node向后指针指向原头部节点，原头部节点的向前指针指向node
+            node.prev=None
+            node.next=self.head
+            self.head.prev=node
+            self.head=node      #头部指针指向node节点
+
+        self.size+=1        # 节点数+1
+
+    # 往头部弹出节点
+    def shift(self):
+        if not self.head:   # 如果链表没有节点，则返回空
+            return
+
+        node = self.head
+        if self.size==1:    # 如果链表只有一个节点
+            self.head=None
+            self.tail=None
+        else:
+            # 将原头部节点的向后指针指向空，将头部指针指向原头部节点的下一个节点,将新头部节点的向前指针指向空
+            self.head=self.head.next    # 将头部指针指向原头部节点的下一个节点
+            node.next=None      # 将原头部节点的向后指针指向空
+            self.head.prev=None # 将新头部节点的向前指针指向空
+
+        self.size-=1
+
+        return node     # 返回被弹出的节点
+
+    # 往尾部添加节点
+    def push(self,node):
+        if not self.tail:
+            self.head=node
+            self.tail=node
+            node.prev=None
+            node.next=None
+        else:
+            node.next=None
+            self.tail.next = node   # 原尾部节点的向后指针指向node
+            node.prev=self.tail     # node的向前指针指向原尾部节点
+            self.tail=node          # 链表的尾部指针指向node
+
+        self.size+=1
+
+    # 往尾部弹出节点
+    def pop(self):
+        if not self.tail:
+            return
+
+        node=self.tail
+        if self.size==1:
+            self.tail=None
+            self.head=None
+        else:
+            node.prev.next=None     # 原尾部节点的上一个节点的尾部指针指向空
+            self.tail=node.prev     # 尾部指针指向原尾部节点的上一个节点
+            node.prev=None          # 原尾部节点的向前指针指向空
+
+        self.size-=1
+        return node
+
+
+
+    # 从任意位置删除节点
+    def remove(self,node):
+        if node==self.head: # 如果删除的节点是头部节点，则调用shift
+            return self.shift()
+        elif node==self.tail:
+            return self.pop()
+        else:   # 如果不是头部节点也不是尾部节点
+            prev = node.prev
+            next = node.next
+
+            if not prev or not node.next:   # 如果要删除的节点没有前后节点，而且也不是头部或者尾部节点，那么说明该节点不在链表中
+                return
+            node.prev=None
+            node.next=None
+            prev.next=next
+            next.prev=prev
+
+            self.size-=1
+            return node
+
+    # 输出链表所有节点
+    def print(self):
+        current = self.head  # 把当前指针指向头部节点
+        content=""
+        while current:
+            content+=str(current)
+            if current.next:
+                content+="->"
+            current=current.next
+
+        print("共有%d个节点，它们是：%s" % (self.size,content))
+
+
+if __name__=="__main__":
+    l=DoubleLinkedList()
+    node_box = []
+    for i in range(1,11):    # 创建10个节点
+        node_box.append(Node(i,i))
+
+    l.unshift(node_box[0])
+    l.push(node_box[1])
+    l.push(node_box[3])
+    l.print()
+
+    l.shift()
+    l.unshift(node_box[8])
+    l.pop()
+    l.push(node_box[5])
+    l.print()
+
+    l.unshift(node_box[3])
+    l.push(node_box[0])
+    l.print()
+
+    l.remove(node_box[0])
+    l.remove(node_box[1])
+    l.remove(node_box[7])
+    l.print()
