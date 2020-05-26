@@ -2,13 +2,14 @@
 
 不同线性结构的关键区分在于数据项增减方式。
 
-最基本的4种线性结构为：
+最基本的几种线性结构为：
 栈         stack
 队列       Queue
 双向队列    Dequeue
 列表       List
+链表       LinkedList
 
-这4种线性结构的区别就是数据增减的方式。
+这几种线性结构的区别就是数据增减的方式。
 
 ===========================================
 
@@ -119,7 +120,7 @@ def isValidBrackets(brackets):
             index = left.index(item)
             if right[index] != bracket:
                 return False
-        else:   # 如果此时遍历到右括号，而且栈中没有左括号，说明左右括号的数量不相等
+        else:   # 如果此时遍历到右括号，而且栈中没有左括号，说明左右括号的数量不相等或者右括号放在了左括号左边
             return False
 
     return True
@@ -207,14 +208,14 @@ A+B*C+D 就变成了 ((A+(B*C))+D)
 
 内层括号优先级大于外层括号，所以计算机就知道先计算 B*C 然后是 A+xxx 最后才是 xxxx+D
 
-但是对于计算机而言，这样还是优点复杂，于是计算机将中缀表达式变成后缀表达式：
+但是对于计算机而言，这样还是有点复杂，于是计算机将中缀表达式变成后缀表达式：
 
 A+B 这个中缀表达式变为后缀表达式是 AB+
 A+B*C+D 是 ABC*+D+
 
 怎么将一个复杂的中缀表达式变为后缀表达式，例如
 (A+B)*C-(D-E)*(F+G)
-ABC*+D+
+
 其实只需要现将 中缀表达式 变为 全括号表达式，再将全括号表达式变为后缀表达式就会简单很多
 (A+B)*C-(D-E)*(F+G) -> (((A+B)*C)-((D-E)*(F+G))) -> (((AB+)C*)((DE-)(FG+)*)-) ->AB+C*DE-FG+*-
 
@@ -230,7 +231,7 @@ ABC*+D+
 如果遍历到( 则压入栈
 如果遍历到) 则反复弹出栈，并将栈内所有的+-*/逐一弹出栈并压入到列表中直到将对应的(给弹出来。左右括号不压入列表中
 如果遍历到 +-*/ 则压入栈，但是压入之前先比较要压入的操作符与栈顶的操作符的优先级。
-如果栈顶的高于或者等于它，则这个操作符不压入栈而是压入列表，并且反复弹出栈顶的操作符压入列表直到栈顶的操作符优先级低于它。
+如果栈顶的高于或者等于它，则反复弹出栈顶的操作符（如果栈顶是括号则不弹出）压入列表直到栈顶的操作符优先级低于它，然后这个操作符入栈。
 为什么栈顶的操作符的优先级等于遍历到的操作符也要弹出呢，因为虽然二者优先级相同但前者比后者的顺序在前，所以前者先执行。
 当栈中的操作符弹出到优先级比遍历到的操作符时，栈不再弹出，此时遍历到的操作符要压入栈中，不能直接进入列表。因为后面的操作数要先于操作符进入列表。
 
@@ -263,7 +264,7 @@ def inFixToPostfix(expr):
                 postfix_list.append(sign)
                 sign = stack.pop()
         else:
-            while (not stack.isEmpty()) and priority[stack.peak()] > priority[char]:
+            while (not stack.isEmpty()) and priority[stack.peak()] >= priority[char]:
                 sign = stack.pop()
                 postfix_list.append(sign)
             stack.push(char)
@@ -371,23 +372,22 @@ isEmpty()       是否为空
 size()          数据个数
 
 
-# coding=utf8
-
-class Queue:
-    def __init__(self):
-        self.items = []
-
-    def enqueue(self,item):
-        self.items.insert(0,item)
-
-    def dequeue(self):
-        return item.pop()
+# 单向队列，使用列表实现
+class ListQueue:
+    def __init__(self,aList = []):
+        self.queue = aList
 
     def size(self):
-        return len(self.items)
+        return len(self.queue)
+
+    def push(self,item):
+        self.queue.insert(0,item)
+
+    def pop(self):
+        return self.queue.pop() if self.size() else None
 
     def isEmpty(self):
-        return self.items==[]
+        return self.size() == 0
 
         
 # 应用1：热土豆问题（约瑟夫问题）
@@ -540,7 +540,7 @@ for x in range(20):     # 进行10次试验
 
 双向队列  Dequeue
 
-双向队列由于有两端所以栈和队列能做到的双向队列都可以做到。它可以不具有内在的FIFO和LIFO的特性
+双向队列由于有两端，所以栈和队列能做到的双向队列都可以做到。它可以不具有内在的FIFO和LIFO的特性
 
 下面使用python实现。将list列表的下标0作为deque的尾端，下标-1作为首端
 主要的两个操作 addRear() 和 addFront() 从尾部添加和从首部添加
