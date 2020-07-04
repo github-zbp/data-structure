@@ -43,6 +43,8 @@ def listsum(numList):
 
 当函数返回时，会从“调用栈”的栈顶会弹出栈桢，恢复现场，按地址返回
 
+调用时入栈，返回时出栈
+
 由于栈是后进先出的特性，所以递归函数的返回顺序和调用顺序是相反的。
 
 
@@ -178,7 +180,7 @@ if __name__ == "__main__":
 
 
 递归之优化问题和贪心策略
-优化问题就是最有解，比如两点之间的最短路径。
+优化问题就是最优解，比如两点之间的最短路径。
 
 一个经典案例：兑换最少个数硬币的问题。
 例如买一个37块的东西，给了100，老板要找钱，我希望找给我的钞票数量最少（50+10+2+1）
@@ -224,7 +226,7 @@ if __name__ == "__main__":
 所以递归只用想出第一轮即可。
 
 def returnCoins2(change,coinList=[1,2,5,10,20,50],knownResult=[]):
-    minCount = change       # 记录所有面值中，找回的最少的张数
+    minCount = change       # 记录所有面值中，找回的最少的张数，一开始minCount要设的最大，所以最少的张数就是要找回的金额
     rightCoin = 1           # 记录所有面值中，找回的最少张数的那个面值
 
     for coin in coinList:  
@@ -264,7 +266,7 @@ def returnCoins2(change,coinList=[1,2,5,10,20,50],knownResult=[]):
 
 当然上面 6块钱要找的最少张数是事先计算好了的，存放在一个表中，可以直接拿来用的。
 
-所以假设要找的前是x元，要求x的张数的最优解我们要做两件事：
+所以假设要找的钱是x元，要求x的张数的最优解我们要做两件事：
 1. 计算1~x-1这些钱的要找的最少张数并记录在一个表中
 2. 查表得到x的张数最优解
 
@@ -314,7 +316,31 @@ if __name__ == "__main__":
 
 所以22块的最优解是2张。
 
-上面如果想返回最少张是哪几种币值可以变一变，很简单，这里不再实现。
+上面如果想返回最少张是哪几种币值可以变一变，很简单：
+
+def returnCoins(change,coinList=[1,2,5,10,20,50]):
+    changeMap = {0:[]}      # 保存change为1~99块的最优解
+
+    for c in range(1,change+1):
+        minCoinNum = c
+        bestCoin = 1
+        bestCoinIndex = 0
+
+        for coin in coinList:
+            if c >= coin:
+                mapIndex = c - coin
+                coinNum = len(changeMap[mapIndex])
+                if coinNum + 1 < minCoinNum:
+                    minCoinNum = coinNum + 1
+                    bestCoin = coin
+                    bestCoinIndex = mapIndex
+
+        temp = changeMap[bestCoinIndex].copy()       # 例如我要找75块，最后一张想找的钱是5，而且5是最后一张的最优解，那么temp就是70块的纸币组合
+        temp.append(bestCoin)
+        changeMap[c] = temp
+
+    return changeMap[change]
+
 
 ==========================================
 
