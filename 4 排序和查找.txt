@@ -126,6 +126,47 @@ if __name__ == "__main__":
 
 二分查找的本质是分治策略。
 
+
+上面的两种写法还有一定的缺陷：上面使用了列表切片功能，python的列表切片的时间复杂度是 O(k)，所以可以进一步改进为不使用列表切片
+# 遍历版
+def binarySearch(aList,value):
+    start = 0
+    end = len(aList) - 1
+
+    while start <= end:     # 可以允许start等于end，但是一旦start大于end说明列表中没有对应的值
+        mid = (start + end) // 2
+        midVal = aList[mid]
+
+        if midVal > value:
+            end = mid - 1
+        elif midVal < value:
+            start = mid + 1
+        else:
+            return True
+
+    return False
+
+
+
+# 递归版
+import sys
+def binarySearch(aList,value,start=0,end=sys.maxsize):
+    end = end if end != sys.maxsize else len(aList) - 1
+
+    if start > end:
+        return False
+
+    mid = (start + end) // 2
+    midVal = aList[mid]
+
+    if midVal > value:
+        end = mid - 1
+    elif midVal < value:
+        start = mid + 1
+    else:
+        return True
+
+    return binarySearch(aList,value,start,end)
 ==========================================
 
 排序算法
@@ -227,11 +268,30 @@ def insertionSort(alist):
             sortedList.append(aitem)
     return sortedList
     
-这样写的话数量级看上去是O(n^2) 但是 insert方法是 O(n)，所以实际上数量级是 O(n^3)
+# 更优雅的写法
+def insertSort(aList):
+    newList = []
 
-所以我们尽量避免使用 insert方法。
+    while len(aList):
+        lastVal = aList.pop()
 
-换一个思路，我们只用一个列表，就是要排序的列表本身。
+        inserted = False
+        for i in range(len(newList)):
+            if newList[i] > lastVal:
+                newList.insert(i,lastVal)
+                inserted = True
+                break
+
+        if not inserted:
+            newList.append(lastVal)
+
+    return newList
+    
+这样写的话数量级看上去是O(n^2) 但是 insert方法是 O(n)，所以实际上数量级是 O(n^3)，而且上面还多创建了一个列表用于存储元素，使用了更多的内存。
+
+
+下面是改进的写法
+我们只用一个列表，就是要排序的列表本身。
 思路如下：还是要遍历n-1趟 ，第一趟比较前两个元素，如果逆序则交换
 第二趟比较前三个元素，将第三个元素和前两个比较大小，根据比较结果进行插入或者不变。
 第三趟比较前四个元素，将第4个元素和前3个比较大小，根据比较结果进行插入或者不变。
@@ -251,7 +311,7 @@ def newInsertionSort(alist):
 
     return alist
     
-其复杂度为 O(n) 但是交换次数较少所以性能比冒泡排序好一些
+其复杂度为 O(n^2) 但是交换次数较少所以性能比冒泡排序好一些
 
 
 下面是动态的过程：
@@ -343,7 +403,7 @@ if __name__ == "__main__":
 
 
 6. 快速排序
-思路是找到无需列表的中值（就是中位数），然后把比中位数小的元素放到一个列表A，比中位数大的元素放到另一个列表B。然后对这两个列表进行递归调用函数。
+思路是找到无序列表的中值（就是中位数），然后把比中位数小的元素放到一个列表A，比中位数大的元素放到另一个列表B。然后对这两个列表进行递归调用函数。
 结束条件是传入的函数只有一个元素。
 递归完了之后，就是合并：按照 A--中位数--B 的方式连起来就是一个完整的排好序的列表
 
@@ -656,7 +716,8 @@ class ADTMap:       # 映射表 key-value结构的表
     def __str__(self):
         mapStr = "{"
         for key in self.keys:
-            mapStr += str(key)+":"+str(self[key])+", "
+            if key != None:
+                mapStr += str(key)+":"+str(self[key])+", "
         mapStr = mapStr.strip(", ")
 
         mapStr = mapStr+"}"
@@ -700,7 +761,7 @@ class ChainADTMap:       # 映射表 key-value结构的表
         return key % self.size      # 返回余数作为散列值（槽号）
 
     @staticmethod
-    def seque_search(alist,value):      # 返回值所在下表
+    def seque_search(alist,value):      # 返回值所在下标
         index = 0
         while index < len(alist):
             print(111)
